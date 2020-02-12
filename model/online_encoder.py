@@ -221,7 +221,7 @@ class RNN(torch.nn.Module):
         # ys: utt list of frame x cdim x 2 (2: means bidirectional)
         ys_pad, ilens = pad_packed_sequence(ys, batch_first=True)
 
-        print(ys_pad.shape)
+        # print(ys_pad.shape)
 
         ys_pad, att_states = self.att(ys_pad, ilens, att_states)
 

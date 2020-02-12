@@ -18,7 +18,7 @@ def ctc_merge(src):
 
 def gen_feats(t):
     sr, sig = wavfile.read(
-        './test.wav')
+        './output.wav')
     sig = Vector(sig[:t*sr])
 
     fbank_bins = 80
@@ -83,7 +83,7 @@ if __name__=='__main__':
 
     print('model loaded')
 
-    feats=gen_feats(50).reshape(1, -1, 83)
+    feats=gen_feats(10).reshape(1, -1, 83)
     cmvn = CMVN(
         './cmvn.ark', norm_vars=True)
     feats = cmvn(feats)

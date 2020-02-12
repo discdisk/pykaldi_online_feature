@@ -26,7 +26,9 @@ def ctc_merge(src):
 def gen_feats(t):
 
     sr, sig = wavfile.read(
-        './test.wav')
+        './output.wav')
+
+    print(sig.dtype)
     sig = Vector(sig[:t*sr])
 
     fbank_bins = 80
