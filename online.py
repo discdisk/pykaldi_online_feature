@@ -26,7 +26,7 @@ def ctc_merge(src):
 def gen_feats(t):
 
     sr, sig = wavfile.read(
-        './test_me.wav')
+        './test.wav')
     sig = Vector(sig[:t*sr])
 
     fbank_bins = 80
@@ -70,7 +70,7 @@ def gen_feats(t):
 
     feats = OnlineAppendFeature(fbank, pitch)
 
-    feats_cmvn = OnlineCmvn(CMVN_opts, cmvn_stats, feats)
+    # feats_cmvn = OnlineCmvn(CMVN_opts, cmvn_stats, feats)
     # feats_cmvn.freeze(0)
 
     result = []
@@ -80,10 +80,10 @@ def gen_feats(t):
         fbank.accept_waveform(sr, sig[i*100:(i+1)*100])
         pitch_src.accept_waveform(sr, sig[i*100:(i+1)*100])
 
-        num_frames_ready = feats_cmvn.num_frames_ready()
+        num_frames_ready = feats.num_frames_ready()
         # print(num_frames_ready)
         if num_frames_ready > last_num:
-            feats_cmvn.get_frame(num_frames_ready, x)
+            feats.get_frame(num_frames_ready, x)
             result.append(x.numpy())
             last_num=num_frames_ready
 
@@ -94,7 +94,7 @@ def gen_feats(t):
 if __name__ == '__main__':
     import torch
     from torch import Tensor
-    from model.encoders import encoder_for
+    from model.online_encoder import encoder_for
     import json
 
     with open('./model/model.json', 'r') as f:
@@ -117,20 +117,22 @@ if __name__ == '__main__':
 
     # cmvn = UtteranceCMVN(norm_means=True, norm_vars=True)
 
-    feats = gen_feats(200)
-    feats = np.array([feat for feat in feats])
+    feats = gen_feats(50)
+    print(len(feats))
+    feats=[np.array(feats[i*5:i*5+5]) for i in range(len(feats)//5)]
+    feats = np.array([cmvn(feat) for feat in feats])
 
-    feats = feats.reshape(1, -1, 83)
-
-
-    
+    feats = feats.reshape((1, -1, 83))
 
 
     print(feats.shape)
 
 
-    result = model(Tensor(feats), [feats.shape[1]])
-    result = torch.argmax(result, -1)[0].numpy()
+    states=None
+    for i in range(feats.shape[1]//300): 
+        result, states = model(Tensor(feats[:,i*300:i*300+300,:]), [feats[:,i*300:i*300+300,:].shape[1]], prev_states=states)
 
-    result = ctc_merge([dic[r] for r in result])
-    print(''.join(result))
+        result = torch.argmax(result, -1)[0].numpy()
+
+        result = ctc_merge([dic[r] for r in result])
+        print(''.join(result))

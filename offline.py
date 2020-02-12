@@ -18,7 +18,7 @@ def ctc_merge(src):
 
 def gen_feats(t):
     sr, sig = wavfile.read(
-        '/mnt/c/Users/cjh06/OneDrive/Desktop/online_rec/test.wav')
+        './test.wav')
     sig = Vector(sig[:t*sr])
 
     fbank_bins = 80
@@ -46,7 +46,7 @@ def gen_feats(t):
     fbank_exractor = Fbank(Fbank_opts)
 
     cmvn = Cmvn()
-    cmvn.read_stats('/mnt/c/Users/cjh06/OneDrive/Desktop/online_rec/cmvn.ark')
+    cmvn.read_stats('./cmvn.ark')
 
     ##extraction
 
@@ -67,14 +67,14 @@ if __name__=='__main__':
     from cmvn import CMVN
     import json
 
-    with open('/mnt/c/Users/cjh06/OneDrive/Desktop/online_rec/model/model.json', 'r') as f:
+    with open('./model/model.json', 'r') as f:
         dic = json.load(f)
         dic = {i:char for i,char in enumerate(dic[2]['char_list'])}
 
 
 
     state_dict = torch.load(
-        '/mnt/c/Users/cjh06/OneDrive/Desktop/online_rec/model/lstm_down_3x2att', map_location=torch.device('cpu'))
+        './model/lstm_down_3x2att', map_location=torch.device('cpu'))
     state_dict = {k[4:]: v for k, v in state_dict.items() if k.split('.')[0] == 'enc' or k.split('.')[0] == 'ctc'}
 
     model = encoder_for()
@@ -85,7 +85,7 @@ if __name__=='__main__':
 
     feats=gen_feats(50).reshape(1, -1, 83)
     cmvn = CMVN(
-        '/mnt/c/Users/cjh06/OneDrive/Desktop/online_rec/cmvn.ark', norm_vars=True)
+        './cmvn.ark', norm_vars=True)
     feats = cmvn(feats)
 
     print(feats.shape)
